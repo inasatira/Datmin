@@ -1,0 +1,37 @@
+library(tidyverse)
+library(e1071)
+library(caret)
+
+
+sonar <- read_csv("D:/DOCUMENT/POLITEKNIK STATISTIKA STIS/PERKULIAHAN/TINGKAT 3/SEMESTER 5/UTS/DATMIN/sonar.all-data", col_names = FALSE)
+str(sonar)
+
+dat = data.frame(X1:X60, X61 = as.factor(X61))
+
+modelSVM <- svm(X61~., data=dat)
+summary(modelSVM)
+
+plot(modelSVM, data=sonar,
+     Petal.Width~Petal.Length,
+     slice= list(Sepal.Width = 3,
+                 Sepal.Length = 4))
+
+pred <- predict(modelSVM, sonar)
+confusionMatrix(table(Predicted = pred, Actual=sonar$X61))
+
+set.seed(123)
+uts <- tune(svm, X61~., data=sonar,
+                     ranges = list(epsilon = seq(0,1,0.1),
+                                   cost = 2^(2:9)))
+uts
+
+
+plot(uts)
+
+summary(uts)
+
+bestmodel <- uts$best.model
+summary(bestmodel)
+
+pred <- predict(bestmodel, sonar)
+confusionMatrix(table(Predicted = pred, Actual=sonar$X61))
